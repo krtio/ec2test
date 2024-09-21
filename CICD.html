@@ -165,6 +165,13 @@ resource "aws_security_group" "MySecurityGroup" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 50000
+    to_port     = 50000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -179,34 +186,46 @@ resource "aws_instance" "MYWebServer" {
   subnet_id             = aws_subnet.Mysubnet1.id
   vpc_security_group_ids = [aws_security_group.MySecurityGroup.id]
   iam_instance_profile   = aws_iam_instance_profile.test1_profile.name
+  key_name              = "ppk"
   tags = {
     Name = "MYWebServer"
   }
 }
 
+
 resource "aws_iam_instance_profile" "test1_profile" {
-  name = "test1_profile"
+  name = "test1_profile_unique"
   role = aws_iam_role.test1.name
 }
 
 resource "aws_instance" "mydeploy" {
   ami                    = "ami-056a29f2eddc40520" 
   instance_type         = "t2.micro"
-  subnet_id             = aws_subnet.Mysubnet1.id
+  subnet_id             = aws_subnet.Mysubnet2.id
   vpc_security_group_ids = [aws_security_group.MySecurityGroup.id]
   iam_instance_profile   = aws_iam_instance_profile.deploy_profile.name
   tags = {
     Name = "mydeploy"
   }
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt-get update -y
+              sudo apt install ruby-full -y
+              sudo apt install wget -y
+              cd /home/ubuntu
+              wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install
+              chmod +x ./install
+              sudo ./install auto
+              EOF
 }
 
 resource "aws_iam_instance_profile" "deploy_profile" {
-  name = "deploy_profile"
+  name = "deploy_profile_unique"
   role = aws_iam_role.ec2_codedeploy_role.name
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "your-unique-bucket-name"  # 여기에 고유한 버킷 이름을 입력하세요.
+  bucket = "qwedqwdqwdqwdqwdqwdwdasdasdasd"  # 고유한 버킷 이름으로 변경
   
   acl    = "private"
   tags = {
@@ -218,3 +237,4 @@ resource "aws_s3_bucket" "my_bucket" {
     enabled = true
   }
 }
+
